@@ -1,31 +1,33 @@
-import sys
-import os
+"""
+Dual-branch selective hypergraph experiment for HEGNN-PPIS.
 
+Architecture:
+- VN-EGNN backbone (shared)
+- Full hypergraph branch (local_full) - baseline hypergraph
+- Selective hypergraph branch (local_selective) - S2 hotspot surface patch
+- Residual fusion: h = h_VN + alpha_full * h_full + alpha_selective * h_selective
+- SWA-best5 selected by validation AUPRC for final Test_60 evaluation
+
+Expected: AUPRC > 0.680 (baseline: 0.6680 +- 0.0090)
+"""
+
+import os
+import sys
+import json
+import pickle
 import numpy as np
 import pandas as pd
-from torch.autograd import Variable
-from sklearn import metrics
-from sklearn.model_selection import KFold
-from HEGNNPPIS_mode import *
-from dataloader import *
-import time
+import torch
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
-import dhg
+from sklearn import metrics as sk_metrics
 
+from dataloader import ProDatasetDual, graph_collate_dual, init
+from model import HEGNNPPIS_Dual
 
-# Path
-Dataset_Path = "./Dataset/"
-Model_Path = "./Model/"
-Log_path = "./Log/"
-Test_path = './Model/model/'
-model_time = None
-
-SEED = 2020
-np.random.seed(SEED)
-torch.manual_seed(SEED)
-if torch.cuda.is_available():
-    torch.cuda.set_device(0)
-    torch.cuda.manual_seed(SEED)
+init()
+SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
+REPOSITORY_ROOT = os.path.dirname(SOURCE_DIR)
 
 
 def generate_dataframe(dataset):
@@ -35,351 +37,355 @@ def generate_dataframe(dataset):
         item = dataset[ID]
         sequences.append(item[0])
         labels.append(item[1])
-    test_dic = {"ID": IDs, "sequence": sequences, "label": labels}
-    test_dataframe = pd.DataFrame(test_dic)
-    return test_dataframe
+    return pd.DataFrame({"ID": IDs, "sequence": sequences, "label": labels})
 
 
-def generate_dataset():
-    init()
-    with open("./Dataset/Test_60.pkl", "rb") as f:
-        Test_60 = pickle.load(f)
-    with open(Config.dataset_path + "Test_315-28.pkl", "rb") as f:
-        Test_315_28 = pickle.load(f)
-    with open(Config.dataset_path + "UBtest_31-6.pkl", "rb") as f:
-        UBtest_31_6 = pickle.load(f)
-    Btest_31_6 = {}
-    with open(Config.dataset_path + "bound_unbound_mapping31-6.txt", "r") as f:
-        lines = f.readlines()[1:]
-    for line in lines:
-        bound_ID, unbound_ID, _ = line.strip().split()
-        Btest_31_6[bound_ID] = Test_60[bound_ID]
+def split_train_validation(dataset, val_fraction=0.15, split_seed=2026):
+    """Protein-level deterministic Train_335 split."""
+    if not 0 < val_fraction < 1:
+        raise ValueError("--val_fraction must be between 0 and 1")
 
-    test_data_frame, psepos_path = {}, {}
-    if Config.test_type == 1:
-        test_data_frame = generate_dataframe(Test_60)
-        psepos_path = Config.Test60_psepos_path
-    elif Config.test_type == 2:
-        test_data_frame = generate_dataframe(Test_315_28)
-        psepos_path = Config.Test315_28_psepos_path
-    elif Config.test_type == 4:
-        test_data_frame = generate_dataframe(UBtest_31_6)
-        psepos_path = Config.UBtest31_28_psepos_path
-    elif Config.test_type == 3:
-        test_data_frame = generate_dataframe(Btest_31_6)
-        psepos_path = Config.Btest31_psepos_path
-    return test_data_frame, psepos_path
+    ids = sorted(dataset.keys())
+    rng = np.random.default_rng(split_seed)
+    shuffled = ids.copy()
+    rng.shuffle(shuffled)
+
+    val_size = max(1, int(round(len(shuffled) * val_fraction)))
+    val_ids = set(shuffled[:val_size])
+    train_split = {pid: dataset[pid] for pid in ids if pid not in val_ids}
+    valid_split = {pid: dataset[pid] for pid in ids if pid in val_ids}
+    return train_split, valid_split
 
 
-def train_one_epoch(model, data_loader):
-    epoch_loss_train = 0.0
-    n = 0
-    alpha = 0.0
-    for data in data_loader:
-        model.optimizer.zero_grad()
-        sequence_name, labels, node_features, virtual_node_features, pos, virtual_pos, edge_index, A2V_edge_index, V2A_edge_index, hypergraph = data
-
-        if torch.cuda.is_available():
-            node_features = Variable(node_features.cuda().float())
-            virtual_node_features = Variable(virtual_node_features.cuda().float())
-            edge_index = Variable(edge_index.cuda().long())
-            A2V_edge_index = Variable(A2V_edge_index.cuda().long())
-            V2A_edge_index = Variable(V2A_edge_index.cuda().long())
-            y_true = Variable(labels.cuda())
-            pos = Variable(pos.cuda().float())
-            virtual_pos = Variable(virtual_pos.cuda().float())
-            hypergraph = hypergraph[0]
-
-        y_true = torch.squeeze(y_true)
-        y_true = y_true.long()
-        y_pred = model(node_features, pos, virtual_node_features, virtual_pos, edge_index, A2V_edge_index, V2A_edge_index, hypergraph)
-
-        loss = model.criterion(y_pred, y_true)
-
-        loss.backward()
-        model.optimizer.step()
-        epoch_loss_train += loss.item()
-        n += 1
-    epoch_loss_train_avg = epoch_loss_train / n
-    return epoch_loss_train_avg
+def sample_std(values):
+    return float(np.std(values, ddof=1)) if len(values) > 1 else 0.0
 
 
-def train(model, train_dataframe, valid_dataframe, fold=0):
-    train_loader = DataLoader(dataset=ProDataset(train_dataframe, hypernodes=Config.hypernodes),
-                              batch_size=Config.batch_size, shuffle=True,
-                              num_workers=4,
-                              collate_fn=graph_collate,
-                              persistent_workers=True, pin_memory=True)
-
-    valid_loader = DataLoader(dataset=ProDataset(dataframe=valid_dataframe,
-                                                      hypernodes=Config.hypernodes),
-                             batch_size=Config.batch_size,
-                             shuffle=True, num_workers=4, collate_fn=graph_collate,
-                             persistent_workers=True, pin_memory=True)
-
-    best_epoch = 0
-    best_val_auc = 0
-    best_val_aupr = 0
-    for epoch in range(Config.epochs):
-        print("\n========== Train epoch " + str(epoch + 1) + " ==========")
-        model.train()
-        time1 = time.time()
-        _ = train_one_epoch(model, train_loader)
-        print("========== Evaluate Valid set ==========")
-        epoch_loss_valid_avg, valid_true, valid_pred, _ = evaluate(model, valid_loader)
-        result_valid = analysis(valid_true, valid_pred, 0.5)
-        print("Valid loss: ", epoch_loss_valid_avg)
-        print("Valid AUC: ", result_valid['AUC'])
-        print("Valid AUPRC: ", result_valid['AUPRC'])
-        if best_val_aupr < result_valid['AUPRC']:
-            best_epoch = epoch + 1
-            best_val_auc = result_valid['AUC']
-            best_val_aupr = result_valid['AUPRC']
-            torch.save(model.state_dict(), os.path.join(Model_Path, 'fold' + str(fold) + '_best_model.pkl'))
-        model.scheduler.step(result_valid['AUPRC'])
-        time2 = time.time()
-        print('one epoch cost :', time2 - time1)
-    return best_epoch, best_val_auc, best_val_aupr
-
-def evaluate(model, data_loader):
+def evaluate_model(model, test_loader, device):
+    """Evaluate model and return metrics."""
     model.eval()
-    epoch_loss = 0.0
-    n = 0
-    valid_pred = []
-    valid_true = []
-    pred_dict = {}
-    for data in data_loader:
-        with torch.no_grad():
-            sequence_names, labels, node_features, hyper_node_features, pos, hyper_pos, edge_index, A2V_edge_index, V2A_edge_index, hypergraph = data
-            if torch.cuda.is_available():
-                node_features = Variable(node_features.cuda().float())
-                hyper_node_features = Variable(hyper_node_features.cuda().float())
-                edge_index = Variable(edge_index.cuda().long())
-                A2V_edge_index = Variable(A2V_edge_index.cuda().long())
-                V2A_edge_index = Variable(V2A_edge_index.cuda().long())
-                y_true = Variable(labels.cuda())
-                pos = Variable(pos.cuda().float())
-                hyper_pos = Variable(hyper_pos.cuda().float())
-                hypergraph = hypergraph[0]
+    all_preds = []
+    all_labels = []
 
-            y_true = torch.squeeze(y_true)
-            y_true = y_true.long()
-            y_pred = model(node_features, pos, hyper_node_features, hyper_pos,
-                                                       edge_index, A2V_edge_index, V2A_edge_index, hypergraph)
-            loss = model.criterion(y_pred, y_true)
-            softmax = torch.nn.Softmax(dim=1)
-            y_pred = softmax(y_pred)
-            y_pred = y_pred.cpu().detach().numpy()
-            y_true = y_true.cpu().detach().numpy()
+    with torch.no_grad():
+        for data in test_loader:
+            (sequence_name, labels, node_features, virtual_node_features, pos, virtual_pos,
+             edge_index, A2V_edge_index, V2A_edge_index, hypergraph_full, hypergraph_selective) = data
 
-            valid_pred += [pred[1] for pred in y_pred]
-            valid_true += list(y_true)
-            pred_dict[sequence_names[0]] = [pred[1] for pred in y_pred]
-            epoch_loss += loss.item()
-            n += 1
-    epoch_loss_avg = epoch_loss / n
-    return epoch_loss_avg, valid_true, valid_pred, pred_dict
+            node_features = node_features.float().to(device)
+            virtual_node_features = virtual_node_features.float().to(device)
+            edge_index = edge_index.long().to(device)
+            A2V_edge_index = A2V_edge_index.long().to(device)
+            V2A_edge_index = V2A_edge_index.long().to(device)
+            y_true = labels.to(device).squeeze().long()
+            pos = pos.float().to(device)
+            virtual_pos = virtual_pos.float().to(device)
+            hypergraph_full = hypergraph_full[0]
+            hypergraph_selective = hypergraph_selective[0]
 
+            y_pred = model(node_features, pos, virtual_node_features, virtual_pos,
+                          edge_index, A2V_edge_index, V2A_edge_index,
+                          hypergraph_full, hypergraph_selective)
 
-def analysis(y_true, y_pred, best_threshold=None):
-    if best_threshold == None:
-        best_f1 = 0
-        best_threshold = 0
-        for threshold in range(0, 100):
-            threshold = threshold / 100
-            binary_pred = [1 if pred >= threshold else 0 for pred in y_pred]
-            binary_true = y_true
-            f1 = metrics.f1_score(binary_true, binary_pred)
-            if f1 > best_f1:
-                best_f1 = f1
-                best_threshold = threshold
+            probs = F.softmax(y_pred, dim=1)[:, 1].cpu().numpy()
+            labels_np = y_true.cpu().numpy()
+            all_preds.extend(probs)
+            all_labels.extend(labels_np)
 
-    binary_pred = [1 if pred >= best_threshold else 0 for pred in y_pred]
-    binary_true = y_true
+    all_preds = np.array(all_preds)
+    all_labels = np.array(all_labels)
 
-    # binary evaluate
-    binary_acc = metrics.accuracy_score(binary_true, binary_pred)
-    precision = metrics.precision_score(binary_true, binary_pred)
-    recall = metrics.recall_score(binary_true, binary_pred)
-    f1 = metrics.f1_score(binary_true, binary_pred)
-    AUC = metrics.roc_auc_score(binary_true, y_pred)
-    precisions, recalls, thresholds = metrics.precision_recall_curve(binary_true, y_pred)
-    AUPRC = metrics.auc(recalls, precisions)
-    mcc = metrics.matthews_corrcoef(binary_true, binary_pred)
+    binary_preds = (all_preds >= 0.5).astype(int)
+    precision, recall, _ = sk_metrics.precision_recall_curve(all_labels, all_preds)
+    auprc = sk_metrics.auc(recall, precision)
+    auroc = sk_metrics.roc_auc_score(all_labels, all_preds)
+    mcc = sk_metrics.matthews_corrcoef(all_labels, binary_preds)
 
-    results = {
-        'binary_acc': binary_acc,
-        'precision': precision,
-        'recall': recall,
-        'f1': f1,
-        'AUC': AUC,
-        'AUPRC': AUPRC,
-        'mcc': mcc,
-        'threshold': best_threshold
-    }
-    return results
-
-def cross_validation(all_dataframe, fold_number=5, layers=4):
-    sequence_names = all_dataframe['ID'].values
-    sequence_labels = all_dataframe['label'].values
-    kfold = KFold(n_splits=fold_number, shuffle=True)
-    fold = 0
-    best_epochs = []
-    valid_aucs = []
-    valid_auprs = []
-
-    for train_index, valid_index in kfold.split(sequence_names, sequence_labels):
-        print("\n\n========== Fold " + str(fold + 1) + " ==========")
-        train_dataframe = all_dataframe.iloc[train_index, :]
-        valid_dataframe = all_dataframe.iloc[valid_index, :]
-        print("Train on", str(train_dataframe.shape[0]), "samples, validate on", str(valid_dataframe.shape[0]),
-              "samples")
-
-        model = HEGNNPPIS(in_dim=67, in_edge_dim=1, hidden_dim=67, layers=layers)
-        if torch.cuda.is_available():
-            model.cuda()
-        best_epoch, valid_auc, valid_aupr = train(model, train_dataframe, valid_dataframe, fold + 1)
-        best_epochs.append(str(best_epoch))
-        valid_aucs.append(valid_auc)
-        valid_auprs.append(valid_aupr)
-        fold += 1
-    print("\n\nBest epoch: " + " ".join(best_epochs))
-    print("Average AUC of {} fold: {:.4f}".format(fold_number, sum(valid_aucs) / fold_number))
-    print("Average AUPR of {} fold: {:.4f}".format(fold_number, sum(valid_auprs) / fold_number))
-    return round(sum([int(epoch) for epoch in best_epochs]) / fold_number)
+    return {'AUPRC': auprc, 'AUC': auroc, 'MCC': mcc}
 
 
-def train_full_model(all_dataframe, test_dataframe, test_psepos_path, layers=4):
-    print("\nTraining a full model using all training data...\n")
-    model = HEGNNPPIS(in_dim=67, in_edge_dim=1, hidden_dim=67, layers=layers)
-
+def train_and_save_checkpoints(seed, dataset, test_dataset,
+                               hypergraph_dir_full, hypergraph_dir_selective,
+                               psepos_train, psepos_test, epochs=30,
+                               alpha_full=0.05, alpha_selective=0.10,
+                               checkpoint_dir=None):
+    """Train, save checkpoints, and return per-epoch validation metrics."""
+    np.random.seed(seed)
+    torch.manual_seed(seed)
     if torch.cuda.is_available():
-        model.cuda()
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
 
-    train_loader = DataLoader(dataset=ProDataset(all_dataframe, hypernodes=Config.hypernodes), batch_size=Config.batch_size, shuffle=True,
-                              num_workers=4,
-                              collate_fn=graph_collate,
-                              persistent_workers=True, pin_memory=True)
+    model = HEGNNPPIS_Dual(
+        in_dim=67, in_edge_dim=1, hidden_dim=67, layers=4,
+        alpha_full=alpha_full, alpha_selective=alpha_selective,
+        use_virtual_nodes=True, use_hyperedges=True
+    )
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model.to(device)
 
-    test_loader = DataLoader(dataset=ProDataset(dataframe=test_dataframe, psepos_path=test_psepos_path,
-                                                      hypernodes=Config.hypernodes),
-                             batch_size=Config.batch_size,
-                             shuffle=True, num_workers=4, collate_fn=graph_collate,
-                             persistent_workers=True, pin_memory=True)
-    ans = 0
-    best_auprc = -1
-    for epoch in range(Config.epochs):
-        print("\n========== Train epoch " + str(epoch + 1) + " ==========")
+    train_df = generate_dataframe(dataset)
+    valid_df = generate_dataframe(test_dataset)
+
+    train_loader = DataLoader(
+        dataset=ProDatasetDual(train_df, psepos_path=psepos_train, hypernodes=3,
+                               hypergraph_dir_full=hypergraph_dir_full,
+                               hypergraph_dir_selective=hypergraph_dir_selective),
+        batch_size=1, shuffle=True, num_workers=0, collate_fn=graph_collate_dual, pin_memory=False)
+    valid_loader = DataLoader(
+        dataset=ProDatasetDual(valid_df, psepos_path=psepos_test, hypernodes=3,
+                               hypergraph_dir_full=hypergraph_dir_full,
+                               hypergraph_dir_selective=hypergraph_dir_selective),
+        batch_size=1, shuffle=False, num_workers=0, collate_fn=graph_collate_dual, pin_memory=False)
+
+    epoch_records = []
+
+    if checkpoint_dir:
+        os.makedirs(checkpoint_dir, exist_ok=True)
+
+    for epoch in range(epochs):
         model.train()
-        time1 = time.time()
-        epoch_loss_train_avg = train_one_epoch(model, train_loader)
-        epoch_loss_test_avg, test_true, test_pred, _ = evaluate(model, test_loader)
-        result_test = analysis(test_true, test_pred, 0.5)
-        print("Test loss: ", epoch_loss_test_avg)
-        print("Test AUC: ", result_test['AUC'])
-        print("Test AUPRC: ", result_test['AUPRC'])
-        time2 = time.time()
-        print('full cost : ', time2 - time1)
-        ans += time2 - time1
-        if result_test['AUPRC'] > best_auprc:
-            best_auprc = result_test['AUPRC']
-            torch.save(model.state_dict(), os.path.join(Model_Path, 'best_model_{}.pkl'.format(epoch + 1)))
-    print(ans)
+        train_loss = 0
+        n = 0
+
+        for data in train_loader:
+            model.optimizer.zero_grad()
+            (sequence_name, labels, node_features, virtual_node_features, pos, virtual_pos,
+             edge_index, A2V_edge_index, V2A_edge_index, hypergraph_full, hypergraph_selective) = data
+
+            node_features = node_features.float().to(device)
+            virtual_node_features = virtual_node_features.float().to(device)
+            edge_index = edge_index.long().to(device)
+            A2V_edge_index = A2V_edge_index.long().to(device)
+            V2A_edge_index = V2A_edge_index.long().to(device)
+            y_true = labels.to(device).squeeze().long()
+            pos = pos.float().to(device)
+            virtual_pos = virtual_pos.float().to(device)
+            hypergraph_full = hypergraph_full[0]
+            hypergraph_selective = hypergraph_selective[0]
+
+            y_pred = model(node_features, pos, virtual_node_features, virtual_pos,
+                          edge_index, A2V_edge_index, V2A_edge_index,
+                          hypergraph_full, hypergraph_selective)
+
+            loss = model.criterion(y_pred, y_true)
+            loss.backward()
+            model.optimizer.step()
+            train_loss += loss.item()
+            n += 1
+
+        # Evaluate current weights on validation only; Test_60 is held out until final evaluation.
+        valid_metrics = evaluate_model(model, valid_loader, device)
+
+        # Save checkpoint
+        ckpt_path = None
+        if checkpoint_dir:
+            ckpt_path = os.path.join(checkpoint_dir, f"epoch{epoch+1}.pt")
+            torch.save(model.state_dict(), ckpt_path)
+
+        epoch_records.append({
+            'epoch': epoch + 1,
+            'path': ckpt_path,
+            'val_AUPRC': valid_metrics['AUPRC'],
+            'val_AUC': valid_metrics['AUC'],
+            'val_MCC': valid_metrics['MCC'],
+        })
+
+        model.scheduler.step(valid_metrics['AUPRC'])
+
+        if (epoch + 1) % 5 == 0 or epoch == 0:
+            print(f"    Epoch {epoch+1}/{epochs} | Val AUPRC: {valid_metrics['AUPRC']:.4f} | Loss: {train_loss/n:.4f}")
+
+    best_auprc = max(r['val_AUPRC'] for r in epoch_records)
+    print(f"    Training complete. Best validation single-epoch AUPRC: {best_auprc:.4f}")
+    return epoch_records
 
 
-def xtest(test_dataframe, psepos_path):
-    print("testing------------------------------")
-    test_loader = DataLoader(dataset=ProDataset(dataframe=test_dataframe, psepos_path=psepos_path,
-                                                      hypernodes=Config.hypernodes),
-                             batch_size=Config.batch_size,
-                             shuffle=False, num_workers=1, collate_fn=graph_collate,
-                             persistent_workers=True, pin_memory=True)
-    print(Test_path)
-    for model_name in sorted(os.listdir(Test_path)):
-        print(model_name)
-        model = HEGNNPPIS(in_dim=67, in_edge_dim=1, hidden_dim=67, layers=4)
-
-        if torch.cuda.is_available():
-            model.cuda()
-        model.load_state_dict(torch.load(Test_path + model_name, map_location='cuda:0'))
-        time1 = time.time()
-        epoch_loss_test_avg, test_true, test_pred, pred_dict = evaluate(model, test_loader)
-        result_test = analysis(test_true, test_pred)
-        print("========== Evaluate Test set ==========")
-        print("Test loss: ", epoch_loss_test_avg)
-        print("Test binary acc: ", result_test['binary_acc'])
-        print("Test precision:", result_test['precision'])
-        print("Test recall: ", result_test['recall'])
-        print("Test f1: ", result_test['f1'])
-        print("Test AUC: ", result_test['AUC'])
-        print("Test AUPRC: ", result_test['AUPRC'])
-        print("Test mcc: ", result_test['mcc'])
-        print("Threshold: ", result_test['threshold'])
-        time2 = time.time()
-        print(time2 - time1)
-
-class Logger(object):
-    def __init__(self, filename="Default.log"):
-        self.terminal = sys.stdout
-        self.log = open(filename, 'ab', buffering=0)
-
-    def write(self, message):
-        self.terminal.write(message)
-        try:
-            self.log.write(message.encode('utf-8'))
-        except ValueError:
-            pass
-
-    def close(self):
-        self.log.close()
-        sys.stdout = self.terminal
-
-    def flush(self):
-        pass
+def load_and_evaluate_checkpoint(checkpoint_info, model, test_loader, device):
+    """Load one selected checkpoint and evaluate it once on Test_60."""
+    state = torch.load(checkpoint_info['path'], map_location=device)
+    model.load_state_dict(state)
+    metrics = evaluate_model(model, test_loader, device)
+    print(
+        f"  [Best checkpoint] Epoch {checkpoint_info['epoch']} "
+        f"| Val AUPRC: {checkpoint_info['val_AUPRC']:.4f} "
+        f"| Test AUPRC: {metrics['AUPRC']:.4f}"
+    )
+    return metrics
 
 
-def main(layer=2):
-    if not os.path.exists(Log_path): os.makedirs(Log_path)
-    with open(Dataset_Path + "Train_335.pkl", "rb") as f:
-        Train_335 = pickle.load(f)
-        Train_335.pop('2j3rA')  # remove the protein with error sequence in the train dataset
+def evaluate_swa_best5(epoch_records, model, test_loader, device):
+    """Apply SWA-best5: average top-5 checkpoints by validation AUPRC."""
+    selected = sorted(epoch_records, key=lambda x: x['val_AUPRC'])[-5:]
 
-    with open(Dataset_Path + "Test_60.pkl", "rb") as f:
-        Test_60 = pickle.load(f)
-    IDs, sequences, labels = [], [], []
-    for ID in Train_335:
-        IDs.append(ID)
-        item = Train_335[ID]
-        sequences.append(item[0])
-        labels.append(item[1])
+    if len(selected) == 0:
+        raise ValueError("No checkpoints selected for SWA-best5")
 
-    train_dic = {"ID": IDs, "sequence": sequences, "label": labels}
-    train_dataframe = pd.DataFrame(train_dic)
-    IDs, sequences, labels = [], [], []
-    for ID in Test_60:
-        IDs.append(ID)
-        item = Test_60[ID]
-        sequences.append(item[0])
-        labels.append(item[1])
-    test_dic = {"ID": IDs, "sequence": sequences, "label": labels}
-    test_dataframe, pos = generate_dataset()
-    # cross_validation
-    # iter = cross_validation(train_dataframe, layers=Config.layers)
-    # full
-    train_full_model(train_dataframe, test_dataframe, pos, layers=Config.layers)
+    avg_state = None
+    for info in selected:
+        state = torch.load(info['path'], map_location=device)
+        if avg_state is None:
+            avg_state = {k: v.clone() for k, v in state.items()}
+        else:
+            for k in avg_state:
+                avg_state[k] += state[k]
+
+    for k in avg_state:
+        avg_state[k] /= len(selected)
+
+    model.load_state_dict(avg_state)
+    metrics = evaluate_model(model, test_loader, device)
+
+    selected_epochs = [r['epoch'] for r in selected]
+    selected_val = [r['val_AUPRC'] for r in selected]
+    print(
+        f"  [SWA-best5] Averaged epochs {selected_epochs} "
+        f"| Mean Val AUPRC: {np.mean(selected_val):.4f} "
+        f"| Test AUPRC: {metrics['AUPRC']:.4f}"
+    )
+    return metrics
+
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset", type=str, default=os.path.join(SOURCE_DIR, "Dataset", "Train_335.pkl"))
+    parser.add_argument("--test_dataset", type=str, default=os.path.join(SOURCE_DIR, "Dataset", "Test_60.pkl"))
+    parser.add_argument("--psepos_train", type=str, default=os.path.join(SOURCE_DIR, "Feature", "psepos", "Train335_psepos_SC.pkl"))
+    parser.add_argument("--psepos_test", type=str, default=os.path.join(SOURCE_DIR, "Feature", "psepos", "Test60_psepos_SC.pkl"))
+    parser.add_argument("--hypergraph_dir_full", type=str, default=os.path.join(SOURCE_DIR, "Graph", "SC", "hypergraph"))
+    parser.add_argument("--hypergraph_dir_selective", type=str, default=os.path.join(SOURCE_DIR, "Graph", "SC", "hypergraph_surface", "hotspot_surface_r10"))
+    parser.add_argument("--seeds", type=int, nargs="+", default=[2020, 2021, 2022])
+    parser.add_argument("--epochs", type=int, default=30)
+    parser.add_argument("--val_fraction", type=float, default=0.15,
+                        help="Fraction of Train_335 held out for validation checkpoint selection")
+    parser.add_argument("--split_seed", type=int, default=2026,
+                        help="Seed for the fixed protein-level train/validation split")
+    parser.add_argument("--alpha_full", type=float, default=0.05)
+    parser.add_argument("--alpha_selective", type=float, default=0.10)
+    parser.add_argument("--output_dir", type=str, default=os.path.join(REPOSITORY_ROOT, "output", "train"))
+    parser.add_argument("--cleanup", action="store_true", help="Delete non-best5 checkpoints after evaluation")
+    args = parser.parse_args()
+
+    with open(args.dataset, 'rb') as f:
+        train_dataset = pickle.load(f)
+    if '2j3rA' in train_dataset:
+        train_dataset.pop('2j3rA')
+    train_split, valid_split = split_train_validation(
+        train_dataset, val_fraction=args.val_fraction, split_seed=args.split_seed)
+
+    with open(args.test_dataset, 'rb') as f:
+        test_dataset = pickle.load(f)
+
+    os.makedirs(args.output_dir, exist_ok=True)
+
+    all_results = []
+    swa_results = []
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    print(f"=" * 80)
+    print("HEGNN-PPIS Dual-branch Selective Hypergraph Experiment")
+    print(f"  alpha_full={args.alpha_full}, alpha_selective={args.alpha_selective}")
+    print(f"  full_dir={args.hypergraph_dir_full}")
+    print(f"  selective_dir={args.hypergraph_dir_selective}")
+    print(
+        f"  split={len(train_split)} train proteins / {len(valid_split)} validation proteins "
+        f"(val_fraction={args.val_fraction}, split_seed={args.split_seed})"
+    )
+    print(f"=" * 80)
+
+    for seed in args.seeds:
+        print(f"\n{'=' * 80}")
+        print(f"Training with seed {seed}...")
+        print(f"{'=' * 80}")
+
+        ckpt_dir = os.path.join(args.output_dir, f"checkpoints_seed{seed}")
+        epoch_records = train_and_save_checkpoints(
+            seed, train_split, valid_split,
+            args.hypergraph_dir_full, args.hypergraph_dir_selective,
+            args.psepos_train, args.psepos_train,
+            args.epochs, alpha_full=args.alpha_full, alpha_selective=args.alpha_selective,
+            checkpoint_dir=ckpt_dir)
+
+        model = HEGNNPPIS_Dual(
+            in_dim=67, in_edge_dim=1, hidden_dim=67, layers=4,
+            alpha_full=args.alpha_full, alpha_selective=args.alpha_selective,
+            use_virtual_nodes=True, use_hyperedges=True
+        ).to(device)
+
+        test_df = generate_dataframe(test_dataset)
+        test_loader = DataLoader(
+            dataset=ProDatasetDual(test_df, psepos_path=args.psepos_test, hypernodes=3,
+                                   hypergraph_dir_full=args.hypergraph_dir_full,
+                                   hypergraph_dir_selective=args.hypergraph_dir_selective),
+            batch_size=1, shuffle=False, num_workers=0, collate_fn=graph_collate_dual, pin_memory=False)
+
+        print(f"\n  Evaluating SWA-best5 for seed {seed}...")
+        best_checkpoint = max(epoch_records, key=lambda x: x['val_AUPRC'])
+        best_metrics = load_and_evaluate_checkpoint(best_checkpoint, model, test_loader, device)
+        all_results.append({
+            'seed': seed,
+            'selected_epoch': best_checkpoint['epoch'],
+            'selection_val_AUPRC': best_checkpoint['val_AUPRC'],
+            **best_metrics,
+        })
+
+        swa_metrics = evaluate_swa_best5(epoch_records, model, test_loader, device)
+        swa_results.append({'seed': seed, **swa_metrics})
+
+        # Optional cleanup
+        if args.cleanup:
+            best5_epochs = {r['epoch'] for r in sorted(epoch_records, key=lambda x: x['val_AUPRC'])[-5:]}
+            best5_epochs.add(best_checkpoint['epoch'])
+            for r in epoch_records:
+                if r['epoch'] not in best5_epochs and r['path'] and os.path.exists(r['path']):
+                    os.remove(r['path'])
+            print(f"  Cleaned up: kept only best5 checkpoints for seed {seed}")
+
+    # Final summary
+    print(f"\n{'=' * 80}")
+    print("FINAL RESULTS")
+    print(f"{'=' * 80}")
+
+    best_singles = [r['AUPRC'] for r in all_results]
+    swa_auprcs = [r['AUPRC'] for r in swa_results]
+    swa_aucs = [r['AUC'] for r in swa_results]
+    swa_mccs = [r['MCC'] for r in swa_results]
+
+    print(f"\n{'Metric':<25} {'Mean':>10} {'Std':>10} {'vs Baseline':>12}")
+    print("-" * 60)
+    print(f"{'HEGNN-PPIS AUPRC':<25} {np.mean(best_singles):>10.4f} {sample_std(best_singles):>10.4f} {'--':>12}")
+    print(f"{'SWA-best5 AUPRC':<25} {np.mean(swa_auprcs):>10.4f} {sample_std(swa_auprcs):>10.4f} {'--':>12}")
+    print(f"{'SWA-best5 AUC':<25} {np.mean(swa_aucs):>10.4f} {sample_std(swa_aucs):>10.4f} {'--':>12}")
+    print(f"{'SWA-best5 MCC':<25} {np.mean(swa_mccs):>10.4f} {sample_std(swa_mccs):>10.4f} {'--':>12}")
+
+    summary = {
+        'config': vars(args),
+        'split': {
+            'train_size': len(train_split),
+            'validation_size': len(valid_split),
+            'validation_ids': sorted(valid_split.keys()),
+        },
+        'best_single': {
+            'AUPRC_mean': float(np.mean(best_singles)),
+            'AUPRC_std': sample_std(best_singles),
+            'results': all_results,
+        },
+        'swa_best5': {
+            'AUPRC_mean': float(np.mean(swa_auprcs)),
+            'AUPRC_std': sample_std(swa_auprcs),
+            'AUC_mean': float(np.mean(swa_aucs)),
+            'MCC_mean': float(np.mean(swa_mccs)),
+            'results': swa_results,
+        }
+    }
+
+    with open(os.path.join(args.output_dir, "results.json"), 'w') as f:
+        json.dump(summary, f, indent=2)
+
+    print(f"\nResults saved to: {args.output_dir}/results.json")
 
 
 if __name__ == "__main__":
-    if model_time is not None:
-        checkpoint_path = os.path.normpath(Log_path + "/" + model_time)
-    else:
-        localtime = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-        checkpoint_path = os.path.normpath(Log_path + "/" + localtime)
-        os.makedirs(checkpoint_path)
-    Model_Path = os.path.normpath(checkpoint_path + '/model')
-    if not os.path.exists(Model_Path): os.makedirs(Model_Path)
-
-    sys.stdout = Logger(os.path.normpath(checkpoint_path + '/train.log'))
-
     main()
-    sys.stdout.log.close()
