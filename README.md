@@ -1,113 +1,168 @@
-<h1 align="center">
-High-Order Equivariant Graph Neural Networks with Geometric Awareness for Protein–Protein Interaction Site Prediction
-</h1>
-<p align="center">
-<img src="https://img.shields.io/badge/OS-Ubuntu22.4-blue" />
-<img src="https://img.shields.io/badge/Python-3.8-red" />
-<img src="https://img.shields.io/badge/Build-Success-green" />
-<img src="https://img.shields.io/badge/License-BSD-blue" />
-<img src="https://img.shields.io/badge/Release-0.1-blue" />
-</p>
+<h1 align="center">HEGNN-PPIS</h1>
 
-<p align="justify">
-Accurate identification of protein-protein interaction sites (PPIS) is crucial for understanding biological mechanisms. Recently, graph neural network based PPIS prediction methods have made certain progress. However, a key issue remains: both explicit low-order interactions and implicit high-order interactions of protein residues play a positive role in the site identification. Most existing methods rely on protein pairwise graph, which struggle to effectively capture high-order interactions when the protein graph local structure is sparse. To address this limitation, we propose a novel algorithm, HEGNN-PPIS. By introducing hypernodes and hyperedges, HEGNN-PPIS transcends the inherent constraints of pairwise graph representations, enabling efficient learning of high-order interaction patterns. To evaluate its capacity for high-order information modeling, we construct sparse test sets by selecting proteins with sparse local neighborhoods from standard benchmark datasets. On this challenging subsets, HEGNN-PPIS substantially outperforms current state-of-the-art methods, achieving absolute gains of 5.5% to 10.4% in AUPRC. Moreover, on the full benchmark datasets, HEGNN-PPIS attains state-of-the-art (SOTA) performance overall. Notably, benefiting from the rich high-order contextual information encoded by hypernodes and hyperedges, HEGNN-PPIS delivers strong predictive performance even with a shallow network architecture, highlighting its efficiency and modeling power. 
+<p align="center">
+  <strong>High-order equivariant graph neural networks for protein-protein interaction site prediction</strong>
 </p>
 
 <p align="center">
-<img src="./doc/figure/HEGNN-PPIS.jpg" width=100%/> <br>
-<b>Figure 1.</b> The overall architecture of HEGNN-PPIS
+  <img src="https://img.shields.io/badge/OS-Windows%2011%20%7C%20Linux-blue" alt="Operating system" />
+  <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12" />
+  <img src="https://img.shields.io/badge/PyTorch-2.11-EE4C2C?logo=pytorch&logoColor=white" alt="PyTorch 2.11" />
+  <img src="https://img.shields.io/badge/CUDA-12.8-76B900?logo=nvidia&logoColor=white" alt="CUDA 12.8" />
+  <img src="https://img.shields.io/badge/Build-Verified-brightgreen" alt="Build verified" />
+  <img src="https://img.shields.io/badge/License-BSD--2--Clause-green" alt="BSD 2-Clause License" />
+  <img src="https://img.shields.io/badge/Release-0.1-blueviolet" alt="Release 0.1" />
 </p>
 
+HEGNN-PPIS is a residue-level protein-protein interaction site predictor based
+on a dual-branch hypergraph architecture. The complete-hypergraph branch
+preserves global structural context, while the selective surface-hypergraph
+branch captures interface-enriched local patterns. Their independently learned
+representations are fused for residue classification.
 
-## Conda Environment Setup
+The repository includes the source code, Train335 and Test60 benchmark inputs,
+three archived checkpoints, residue-level predictions, reproducibility
+scripts, and report-ready ablation data.
 
-``` shell
-conda create --name hegnn --file ./src/requirements.txt
-conda activate hegnn
-```
-
-## Datasets
-
-<p align="justify">
-In this study, we conduct experiments using the protein-protein datasets provided by the previous work AGAT-PPIS. The AGAT-PPIS datasets consist of a training set (Train_335-1) and four test sets (Test_60, Test_315-28, Btest_31-6 and UBtest_31-6). Detailed information about these datasets are provided in Table 1. Throughout our work, Train_335-1 and Test_60 are used as the primary datasets for model training and testing, while the remaining three test sets are mainly employed to evaluate the model’s generalization ability.
+<p align="center">
+  <img src="doc/figure/HEGNN-PPIS.jpg" width="95%" alt="HEGNN-PPIS architecture" />
+  <br />
+  <b>Figure 1.</b> Overall architecture of HEGNN-PPIS.
 </p>
 
-### Load Dataset
+## Test60 results
 
-```python
+The reported ensemble uses seeds `2181`, `2182`, and `2183`, continuation epoch
+`3`, and a validation-selected blend weight of `0.25`.
 
+| Metric | Value |
+|:--|--:|
+| ACC | 0.898433 |
+| Precision | 0.685557 |
+| Recall | 0.658795 |
+| F1 | 0.671910 |
+| MCC | 0.612024 |
+| AUROC | **0.925141** |
+| AUPRC | **0.740268** |
+
+Epoch and blend-weight selection used the fixed Train335 validation split.
+Test60 was evaluated once, and binary decisions use the frozen
+validation-selected prediction rule.
+
+## Quick start
+
+The verified environment used Python 3.12, PyTorch 2.11.0, CUDA 12.8, DHG
+0.9.5, and PyTorch Geometric 2.7.0.
+
+```powershell
+conda create -n hegnn-ppis python=3.12
+conda activate hegnn-ppis
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+pip install -r requirements.txt
 ```
 
+Install the PyTorch build matching your local CUDA version when CUDA 12.8 is
+not available. CPU execution is supported, but full inference is slower.
 
-## Train
+### Verify the committed results
 
+This command recomputes every metric from the committed residue-level
+predictions and verifies the checkpoint and artifact SHA-256 hashes. A GPU is
+not required.
 
-```commandline
-python train.py
+```powershell
+python scripts/verify_results.py
 ```
 
-## test
+Expected output:
 
-
-```commandline
-python test.py
+```text
+Result verification passed: ACC=0.898432745, Precision=0.685556670, AUROC=0.925140896, AUPRC=0.740267747
 ```
 
-Output
+### Run the smoke test
 
-```commandline
-Test_60_best.pkl
-========== Evaluate Test set ==========
-Test loss:  0.3313633605837822
-Test binary acc:  0.8904443091905052
-Test precision: 0.6542010684798446
-Test recall:  0.6491566265060241
-Test f1:  0.6516690856313498
-Test AUC:  0.9031634424589678
-Test AUPRC:  0.6948013397793492
-Test mcc:  0.5866768793461459
-Threshold:  0.25
-
-Test_315-28_best.pkl
-========== Evaluate Test set ==========
-Test loss:  0.30311310639157113
-Test binary acc:  0.8846395918908175
-Test precision: 0.5821278342053965
-Test recall:  0.6623861779126781
-Test f1:  0.6196690875334462
-Test AUC:  0.9033724920204723
-Test AUPRC:  0.6531124034708858
-Test mcc:  0.5536100201290782
-Threshold:  0.4
-
-BTest_31-6_best.pkl
-========== Evaluate Test set ==========
-Test loss:  0.26363127171993256
-Test binary acc:  0.9002387448840382
-Test precision: 0.5901639344262295
-Test recall:  0.6820027063599459
-Test f1:  0.632768361581921
-Test AUC:  0.9201093105383017
-Test AUPRC:  0.6588535502237624
-Test mcc:  0.5774103605926706
-Threshold:  0.26
-
-UBtest_31-6_best.pkl
-========== Evaluate Test set ==========
-Test loss:  0.4149226629734039
-Test binary acc:  0.8707115092107487
-Test precision: 0.4637096774193548
-Test recall:  0.48523206751054854
-Test f1:  0.4742268041237113
-Test AUC:  0.8252349204342279
-Test AUPRC:  0.39961346129565745
-Test mcc:  0.4006974913649132
-Threshold:  0.21
+```powershell
+python tests/smoke_test.py
 ```
 
-Visualization
----
+## Reproduce Test60 inference
 
----
+All Train335 validation and Test60 inputs required by the archived evaluation
+are included.
 
-![4kbmB.](doc/figure/4kbmB.jpg)
+```powershell
+python src/evaluate.py
+python scripts/verify_results.py --result-dir output/test60
+```
+
+PowerShell users can run both commands through:
+
+```powershell
+.\scripts\reproduce_test60.ps1
+```
+
+New predictions are written to `output/test60/`. The committed reference files
+under `results/test60/` are never overwritten.
+
+## Train from scratch
+
+Run the following command from the repository root:
+
+```powershell
+python src/train.py `
+  --seeds 2020 2021 2022 `
+  --epochs 30 `
+  --output_dir output/train
+```
+
+The default arguments use the included Train335 and Test60 inputs.
+
+## Generate selective surface hypergraphs
+
+```powershell
+python src/generate_surface_hypergraph.py --help
+```
+
+The utility supports the surface-selection strategies and output settings used
+by the selective hypergraph branch.
+
+## Repository structure
+
+```text
+HEGNN-PPIS/
+|-- src/
+|   |-- Dataset/              Train335 and benchmark datasets
+|   |-- Feature/              Residue-level input features
+|   |-- Graph/                Pairwise graphs and hypergraphs
+|   |-- model.py              Dual-branch model
+|   |-- model_ablation.py     Component-ablation wrapper
+|   |-- train.py              Training entry point
+|   `-- evaluate.py           Three-seed Test60 evaluation
+|-- checkpoints/              Three epoch-3 model state dictionaries
+|-- scripts/                  Reproduction and verification helpers
+|-- tests/                    Fast model-construction smoke test
+|-- requirements.txt
+`-- README.md
+```
+
+## Result artifacts
+
+| File | Description |
+|:--|:--|
+| [`metrics.csv`](results/test60/metrics.csv) | Aggregate metrics and confusion matrix |
+| [`seed_metrics.csv`](results/test60/seed_metrics.csv) | Metrics for the three ensemble members |
+| [`predictions.csv`](results/test60/predictions.csv) | Residue-level probabilities and decisions |
+| [`experiment.json`](results/test60/experiment.json) | Protocol, configuration, checkpoint hashes, and split audit |
+| [`checksums.sha256`](results/test60/checksums.sha256) | SHA-256 manifest for checkpoints and result artifacts |
+| [`core_component_ablation.csv`](results/ablation/core_component_ablation.csv) | Numeric component-ablation statistics |
+| [`manuscript_table.csv`](results/ablation/manuscript_table.csv) | Rounded report-ready ablation values |
+
+The ablation table reports a separate three-seed, 30-epoch experiment. Its rows
+should not be combined directly with the final checkpoint ensemble because the
+two tables use different evaluation pipelines.
+
+## License
+
+This project is distributed under the
+[BSD 2-Clause License](LICENSE).

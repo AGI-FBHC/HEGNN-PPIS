@@ -15,6 +15,7 @@ from torch_geometric.typing import Adj, OptPairTensor, OptTensor
 
 EPS = 1e-5
 
+
 class HGNNPConv(nn.Module):
     def __init__(self, in_dim, out_dim, bias=True, residual=False):
         super().__init__()
