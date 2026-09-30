@@ -34,5 +34,3 @@ class Config():
     Train335_psepos_path = str(SOURCE_DIR / "Feature/psepos/Train335_psepos_SC.pkl")
     dataset_path = str(SOURCE_DIR / "Dataset") + os.sep
     hypernodes = 3
-
-    test_type = 1  # change test dataset type, 1 -> Test_60, 2 -> Test_315-28, 3 -> BTest_31-6, 4 -> UBtest_31-6

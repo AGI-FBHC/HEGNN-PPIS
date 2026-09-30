@@ -1,0 +1,1643 @@
+{
+  "protocol": "complete Train335 label-blind sequence-homology components for internal CV",
+  "identity_threshold": 0.3,
+  "coverage_threshold": 0.8,
+  "training_proteins": 334,
+  "homology_edge_count": 72,
+  "homology_edges": [
+    {
+      "left_id": "1acbI",
+      "right_id": "2v6xA",
+      "identity": 0.3148148148148148,
+      "coverage_of_shorter": 0.8571428571428571
+    },
+    {
+      "left_id": "1acbI",
+      "right_id": "4eukA",
+      "identity": 0.3076923076923077,
+      "coverage_of_shorter": 0.8253968253968254
+    },
+    {
+      "left_id": "1ay7B",
+      "right_id": "2wd5A",
+      "identity": 0.32432432432432434,
+      "coverage_of_shorter": 0.8314606741573034
+    },
+    {
+      "left_id": "1e6eA",
+      "right_id": "4awxB",
+      "identity": 0.3018867924528302,
+      "coverage_of_shorter": 0.8412698412698413
+    },
+    {
+      "left_id": "1efnA",
+      "right_id": "1gcqB",
+      "identity": 0.35294117647058826,
+      "coverage_of_shorter": 0.8947368421052632
+    },
+    {
+      "left_id": "1euvB",
+      "right_id": "1k5dC",
+      "identity": 0.34375,
+      "coverage_of_shorter": 0.810126582278481
+    },
+    {
+      "left_id": "1f34A",
+      "right_id": "3zkqA",
+      "identity": 0.30666666666666664,
+      "coverage_of_shorter": 0.9230769230769231
+    },
+    {
+      "left_id": "1f60B",
+      "right_id": "2b59B",
+      "identity": 0.3013698630136986,
+      "coverage_of_shorter": 0.8111111111111111
+    },
+    {
+      "left_id": "1fc2C",
+      "right_id": "2ehbD",
+      "identity": 0.3684210526315789,
+      "coverage_of_shorter": 0.8636363636363636
+    },
+    {
+      "left_id": "1fc2C",
+      "right_id": "3aqbB",
+      "identity": 0.3,
+      "coverage_of_shorter": 0.9090909090909091
+    },
+    {
+      "left_id": "1ghqB",
+      "right_id": "3mdbA",
+      "identity": 0.32098765432098764,
+      "coverage_of_shorter": 0.826530612244898
+    },
+    {
+      "left_id": "1glaF",
+      "right_id": "4iu2B",
+      "identity": 0.3007518796992481,
+      "coverage_of_shorter": 0.8260869565217391
+    },
+    {
+      "left_id": "1hx1A",
+      "right_id": "2wusA",
+      "identity": 0.3222591362126246,
+      "coverage_of_shorter": 0.8985074626865671
+    },
+    {
+      "left_id": "1hx1B",
+      "right_id": "1z0jB",
+      "identity": 0.3023255813953488,
+      "coverage_of_shorter": 0.8431372549019608
+    },
+    {
+      "left_id": "1hx1B",
+      "right_id": "3viqB",
+      "identity": 0.38235294117647056,
+      "coverage_of_shorter": 0.8
+    },
+    {
+      "left_id": "1ib1A",
+      "right_id": "2wusR",
+      "identity": 0.30985915492957744,
+      "coverage_of_shorter": 0.8160919540229885
+    },
+    {
+      "left_id": "1ib1A",
+      "right_id": "3shgB",
+      "identity": 0.30357142857142855,
+      "coverage_of_shorter": 0.9180327868852459
+    },
+    {
+      "left_id": "1jmoL",
+      "right_id": "3zr4B",
+      "identity": 0.36585365853658536,
+      "coverage_of_shorter": 0.8723404255319149
+    },
+    {
+      "left_id": "1jmtA",
+      "right_id": "2dohX",
+      "identity": 0.3291139240506329,
+      "coverage_of_shorter": 0.8061224489795918
+    },
+    {
+      "left_id": "1k5dC",
+      "right_id": "3og6A",
+      "identity": 0.3153846153846154,
+      "coverage_of_shorter": 0.9090909090909091
+    },
+    {
+      "left_id": "1ka9F",
+      "right_id": "4awxB",
+      "identity": 0.3018867924528302,
+      "coverage_of_shorter": 0.8412698412698413
+    },
+    {
+      "left_id": "1mahF",
+      "right_id": "2qc1A",
+      "identity": 0.5272727272727272,
+      "coverage_of_shorter": 0.9016393442622951
+    },
+    {
+      "left_id": "1mahF",
+      "right_id": "4bh6L",
+      "identity": 0.34146341463414637,
+      "coverage_of_shorter": 0.803921568627451
+    },
+    {
+      "left_id": "1mg9B",
+      "right_id": "4bh6L",
+      "identity": 0.34146341463414637,
+      "coverage_of_shorter": 0.803921568627451
+    },
+    {
+      "left_id": "1n2cA",
+      "right_id": "3r07C",
+      "identity": 0.3026315789473684,
+      "coverage_of_shorter": 0.8636363636363636
+    },
+    {
+      "left_id": "1n2cB",
+      "right_id": "3ph0A",
+      "identity": 0.38,
+      "coverage_of_shorter": 0.8333333333333334
+    },
+    {
+      "left_id": "1nrjA",
+      "right_id": "3di3A",
+      "identity": 0.3137254901960784,
+      "coverage_of_shorter": 0.864406779661017
+    },
+    {
+      "left_id": "1rlbE",
+      "right_id": "2c9xB",
+      "identity": 0.3076923076923077,
+      "coverage_of_shorter": 0.8024691358024691
+    },
+    {
+      "left_id": "1rlbE",
+      "right_id": "2rd7C",
+      "identity": 0.30985915492957744,
+      "coverage_of_shorter": 0.8930817610062893
+    },
+    {
+      "left_id": "1t6bX",
+      "right_id": "2v1yB",
+      "identity": 0.3120567375886525,
+      "coverage_of_shorter": 0.8493975903614458
+    },
+    {
+      "left_id": "1t6bX",
+      "right_id": "4a5uA",
+      "identity": 0.3046875,
+      "coverage_of_shorter": 0.8648648648648649
+    },
+    {
+      "left_id": "1t6bX",
+      "right_id": "4bh6L",
+      "identity": 0.3023255813953488,
+      "coverage_of_shorter": 0.8431372549019608
+    },
+    {
+      "left_id": "1z0jB",
+      "right_id": "2apoA",
+      "identity": 0.30952380952380953,
+      "coverage_of_shorter": 0.8235294117647058
+    },
+    {
+      "left_id": "1z0jB",
+      "right_id": "2xqrA",
+      "identity": 0.32608695652173914,
+      "coverage_of_shorter": 0.9019607843137255
+    },
+    {
+      "left_id": "1z0jB",
+      "right_id": "3bh7B",
+      "identity": 0.35555555555555557,
+      "coverage_of_shorter": 0.8823529411764706
+    },
+    {
+      "left_id": "1z3eB",
+      "right_id": "3h4sA",
+      "identity": 0.3148148148148148,
+      "coverage_of_shorter": 0.8059701492537313
+    },
+    {
+      "left_id": "1zbxA",
+      "right_id": "3mmyB",
+      "identity": 0.3170731707317073,
+      "coverage_of_shorter": 0.803921568627451
+    },
+    {
+      "left_id": "2c5kT",
+      "right_id": "4bh6L",
+      "identity": 0.3023255813953488,
+      "coverage_of_shorter": 0.8431372549019608
+    },
+    {
+      "left_id": "2c9xB",
+      "right_id": "4bi8B",
+      "identity": 0.3333333333333333,
+      "coverage_of_shorter": 0.8148148148148148
+    },
+    {
+      "left_id": "2c9xB",
+      "right_id": "4m69A",
+      "identity": 0.35384615384615387,
+      "coverage_of_shorter": 0.8024691358024691
+    },
+    {
+      "left_id": "2cg5B",
+      "right_id": "3anwA",
+      "identity": 0.3283582089552239,
+      "coverage_of_shorter": 0.9436619718309859
+    },
+    {
+      "left_id": "2cg5B",
+      "right_id": "3dgpB",
+      "identity": 0.3333333333333333,
+      "coverage_of_shorter": 0.8095238095238095
+    },
+    {
+      "left_id": "2fcwA",
+      "right_id": "3bs5B",
+      "identity": 0.3387096774193548,
+      "coverage_of_shorter": 0.8378378378378378
+    },
+    {
+      "left_id": "2fhzA",
+      "right_id": "2o3bA",
+      "identity": 0.32954545454545453,
+      "coverage_of_shorter": 0.8301886792452831
+    },
+    {
+      "left_id": "2hqsH",
+      "right_id": "4fq0B",
+      "identity": 0.3111111111111111,
+      "coverage_of_shorter": 0.8333333333333334
+    },
+    {
+      "left_id": "2hrkA",
+      "right_id": "3mcbB",
+      "identity": 0.3673469387755102,
+      "coverage_of_shorter": 0.8448275862068966
+    },
+    {
+      "left_id": "2omzA",
+      "right_id": "3b08A",
+      "identity": 0.32231404958677684,
+      "coverage_of_shorter": 0.8013245033112583
+    },
+    {
+      "left_id": "2omzA",
+      "right_id": "3mcbB",
+      "identity": 0.3469387755102041,
+      "coverage_of_shorter": 0.8448275862068966
+    },
+    {
+      "left_id": "2p7vB",
+      "right_id": "4a5uB",
+      "identity": 0.32142857142857145,
+      "coverage_of_shorter": 0.8235294117647058
+    },
+    {
+      "left_id": "2qxvA",
+      "right_id": "2v6xA",
+      "identity": 0.3333333333333333,
+      "coverage_of_shorter": 0.825
+    },
+    {
+      "left_id": "2v1yB",
+      "right_id": "2wusR",
+      "identity": 0.35714285714285715,
+      "coverage_of_shorter": 0.8045977011494253
+    },
+    {
+      "left_id": "2v6xA",
+      "right_id": "4e6nA",
+      "identity": 0.35294117647058826,
+      "coverage_of_shorter": 0.85
+    },
+    {
+      "left_id": "2v8sV",
+      "right_id": "3vrdA",
+      "identity": 0.34523809523809523,
+      "coverage_of_shorter": 0.9032258064516129
+    },
+    {
+      "left_id": "2v8sV",
+      "right_id": "4etpA",
+      "identity": 0.3333333333333333,
+      "coverage_of_shorter": 0.8387096774193549
+    },
+    {
+      "left_id": "2wusA",
+      "right_id": "3mp7B",
+      "identity": 0.32608695652173914,
+      "coverage_of_shorter": 0.8518518518518519
+    },
+    {
+      "left_id": "2wusR",
+      "right_id": "3cpjG",
+      "identity": 0.3013698630136986,
+      "coverage_of_shorter": 0.8390804597701149
+    },
+    {
+      "left_id": "3b08B",
+      "right_id": "3vrdB",
+      "identity": 0.36,
+      "coverage_of_shorter": 0.8620689655172413
+    },
+    {
+      "left_id": "3begA",
+      "right_id": "4f6uA",
+      "identity": 0.322463768115942,
+      "coverage_of_shorter": 0.8263473053892215
+    },
+    {
+      "left_id": "3cx8B",
+      "right_id": "4joiD",
+      "identity": 0.30612244897959184,
+      "coverage_of_shorter": 0.8305084745762712
+    },
+    {
+      "left_id": "3d4uB",
+      "right_id": "3fjuB",
+      "identity": 0.36538461538461536,
+      "coverage_of_shorter": 0.8
+    },
+    {
+      "left_id": "3dgpB",
+      "right_id": "3r07A",
+      "identity": 0.3103448275862069,
+      "coverage_of_shorter": 0.9206349206349206
+    },
+    {
+      "left_id": "3h4sA",
+      "right_id": "4etpA",
+      "identity": 0.46557377049180326,
+      "coverage_of_shorter": 0.8495821727019499
+    },
+    {
+      "left_id": "3mmyB",
+      "right_id": "3w0lB",
+      "identity": 0.3488372093023256,
+      "coverage_of_shorter": 0.8431372549019608
+    },
+    {
+      "left_id": "3o3mA",
+      "right_id": "3shgB",
+      "identity": 0.3018867924528302,
+      "coverage_of_shorter": 0.8688524590163934
+    },
+    {
+      "left_id": "3ph0A",
+      "right_id": "4kt6B",
+      "identity": 0.3125,
+      "coverage_of_shorter": 0.8
+    },
+    {
+      "left_id": "3ph0C",
+      "right_id": "4kbmA",
+      "identity": 0.3181818181818182,
+      "coverage_of_shorter": 0.8301886792452831
+    },
+    {
+      "left_id": "3q87B",
+      "right_id": "4emjA",
+      "identity": 0.3333333333333333,
+      "coverage_of_shorter": 0.8597560975609756
+    },
+    {
+      "left_id": "3shgB",
+      "right_id": "3zheA",
+      "identity": 0.3157894736842105,
+      "coverage_of_shorter": 0.9344262295081968
+    },
+    {
+      "left_id": "4bh6L",
+      "right_id": "4fouA",
+      "identity": 0.3170731707317073,
+      "coverage_of_shorter": 0.803921568627451
+    },
+    {
+      "left_id": "4dfcA",
+      "right_id": "4fq0B",
+      "identity": 0.32857142857142857,
+      "coverage_of_shorter": 0.8235294117647058
+    },
+    {
+      "left_id": "4fq0C",
+      "right_id": "4h3kA",
+      "identity": 0.3088235294117647,
+      "coverage_of_shorter": 0.85
+    },
+    {
+      "left_id": "4hopA",
+      "right_id": "4hopB",
+      "identity": 0.3950617283950617,
+      "coverage_of_shorter": 0.9310344827586207
+    }
+  ],
+  "component_count": 262,
+  "largest_component": 15,
+  "clusters": [
+    [
+      "1acbI",
+      "2qxvA",
+      "2v6xA",
+      "4e6nA",
+      "4eukA"
+    ],
+    [
+      "1ak4A"
+    ],
+    [
+      "1ak4D"
+    ],
+    [
+      "1ay7B",
+      "2wd5A"
+    ],
+    [
+      "1b6cA"
+    ],
+    [
+      "1c1yB"
+    ],
+    [
+      "1dfjE"
+    ],
+    [
+      "1dfjI"
+    ],
+    [
+      "1e4kA"
+    ],
+    [
+      "1e4kC"
+    ],
+    [
+      "1e6eA",
+      "1ka9F",
+      "4awxB"
+    ],
+    [
+      "1e6eB"
+    ],
+    [
+      "1eerA"
+    ],
+    [
+      "1eerB"
+    ],
+    [
+      "1efnA",
+      "1gcqB"
+    ],
+    [
+      "1efnB"
+    ],
+    [
+      "1euvA"
+    ],
+    [
+      "1euvB",
+      "1k5dC",
+      "3og6A"
+    ],
+    [
+      "1ewyA"
+    ],
+    [
+      "1f34A",
+      "3zkqA"
+    ],
+    [
+      "1f34B"
+    ],
+    [
+      "1f60A"
+    ],
+    [
+      "1f60B",
+      "2b59B"
+    ],
+    [
+      "1fc2C",
+      "2ehbD",
+      "3aqbB"
+    ],
+    [
+      "1gcqC"
+    ],
+    [
+      "1ggpB"
+    ],
+    [
+      "1ghqA"
+    ],
+    [
+      "1ghqB",
+      "3mdbA"
+    ],
+    [
+      "1gl4B"
+    ],
+    [
+      "1glaF",
+      "4iu2B"
+    ],
+    [
+      "1h32A"
+    ],
+    [
+      "1hx1A",
+      "2wusA",
+      "3mp7B"
+    ],
+    [
+      "1hx1B",
+      "1z0jB",
+      "2apoA",
+      "2xqrA",
+      "3bh7B",
+      "3viqB"
+    ],
+    [
+      "1ib1A",
+      "1mahF",
+      "1mg9B",
+      "1t6bX",
+      "2c5kT",
+      "2qc1A",
+      "2v1yB",
+      "2wusR",
+      "3cpjG",
+      "3o3mA",
+      "3shgB",
+      "3zheA",
+      "4a5uA",
+      "4bh6L",
+      "4fouA"
+    ],
+    [
+      "1ib1E"
+    ],
+    [
+      "1itbA"
+    ],
+    [
+      "1itbB"
+    ],
+    [
+      "1jiwI"
+    ],
+    [
+      "1jiwP"
+    ],
+    [
+      "1jmoH"
+    ],
+    [
+      "1jmoL",
+      "3zr4B"
+    ],
+    [
+      "1jmtA",
+      "2dohX"
+    ],
+    [
+      "1jtdB"
+    ],
+    [
+      "1k5dA"
+    ],
+    [
+      "1k5dB"
+    ],
+    [
+      "1k74A"
+    ],
+    [
+      "1k74D"
+    ],
+    [
+      "1kacA"
+    ],
+    [
+      "1kklC"
+    ],
+    [
+      "1kklH"
+    ],
+    [
+      "1kshA"
+    ],
+    [
+      "1kshB"
+    ],
+    [
+      "1ktzA"
+    ],
+    [
+      "1ktzB"
+    ],
+    [
+      "1mahA"
+    ],
+    [
+      "1mg9A"
+    ],
+    [
+      "1ml0A"
+    ],
+    [
+      "1n2cA",
+      "3r07C"
+    ],
+    [
+      "1n2cB",
+      "3ph0A",
+      "4kt6B"
+    ],
+    [
+      "1n2cE"
+    ],
+    [
+      "1nrjA",
+      "3di3A"
+    ],
+    [
+      "1nrjB"
+    ],
+    [
+      "1nw9A"
+    ],
+    [
+      "1nw9B"
+    ],
+    [
+      "1pq1A"
+    ],
+    [
+      "1pxvA"
+    ],
+    [
+      "1pxvC"
+    ],
+    [
+      "1rlbA"
+    ],
+    [
+      "1rlbE",
+      "2c9xB",
+      "2rd7C",
+      "4bi8B",
+      "4m69A"
+    ],
+    [
+      "1svdA"
+    ],
+    [
+      "1svdM"
+    ],
+    [
+      "1ta3B"
+    ],
+    [
+      "1tdqA"
+    ],
+    [
+      "1tdqB"
+    ],
+    [
+      "1te1B"
+    ],
+    [
+      "1tnrA"
+    ],
+    [
+      "1tnrR"
+    ],
+    [
+      "1u0sA"
+    ],
+    [
+      "1u0sY"
+    ],
+    [
+      "1udiE"
+    ],
+    [
+      "1udiI"
+    ],
+    [
+      "1v74B"
+    ],
+    [
+      "1wkwA"
+    ],
+    [
+      "1wpxB"
+    ],
+    [
+      "1xg2A"
+    ],
+    [
+      "1xg2B"
+    ],
+    [
+      "1xqsA"
+    ],
+    [
+      "1yvbI"
+    ],
+    [
+      "1z3eA"
+    ],
+    [
+      "1z3eB",
+      "2v8sV",
+      "3h4sA",
+      "3vrdA",
+      "4etpA"
+    ],
+    [
+      "1z5yD"
+    ],
+    [
+      "1z5yE"
+    ],
+    [
+      "1zbdB"
+    ],
+    [
+      "1zbxA",
+      "3mmyB",
+      "3w0lB"
+    ],
+    [
+      "1zbxB"
+    ],
+    [
+      "2a9kB"
+    ],
+    [
+      "2ajfA"
+    ],
+    [
+      "2ajfE"
+    ],
+    [
+      "2b59A"
+    ],
+    [
+      "2c9xA"
+    ],
+    [
+      "2cg5A"
+    ],
+    [
+      "2cg5B",
+      "3anwA",
+      "3dgpB",
+      "3r07A"
+    ],
+    [
+      "2d5rA"
+    ],
+    [
+      "2d5rB"
+    ],
+    [
+      "2d74B"
+    ],
+    [
+      "2dvwB"
+    ],
+    [
+      "2fcwA",
+      "3bs5B"
+    ],
+    [
+      "2fcwB"
+    ],
+    [
+      "2fhzA",
+      "2o3bA"
+    ],
+    [
+      "2fp4A"
+    ],
+    [
+      "2fp4B"
+    ],
+    [
+      "2g2uB"
+    ],
+    [
+      "2g77A"
+    ],
+    [
+      "2h0dA"
+    ],
+    [
+      "2h0dB"
+    ],
+    [
+      "2hqsA"
+    ],
+    [
+      "2hqsH",
+      "4dfcA",
+      "4fq0B"
+    ],
+    [
+      "2hrkA",
+      "2omzA",
+      "3b08A",
+      "3mcbB"
+    ],
+    [
+      "2hrkB"
+    ],
+    [
+      "2j3rB"
+    ],
+    [
+      "2mtaA"
+    ],
+    [
+      "2mtaH"
+    ],
+    [
+      "2mtaL"
+    ],
+    [
+      "2o2vA"
+    ],
+    [
+      "2o2vB"
+    ],
+    [
+      "2o3bB"
+    ],
+    [
+      "2o8vA"
+    ],
+    [
+      "2o8vB"
+    ],
+    [
+      "2omzB"
+    ],
+    [
+      "2oznA"
+    ],
+    [
+      "2oznB"
+    ],
+    [
+      "2p7vA"
+    ],
+    [
+      "2p7vB",
+      "4a5uB"
+    ],
+    [
+      "2qc1B"
+    ],
+    [
+      "2qklB"
+    ],
+    [
+      "2r25A"
+    ],
+    [
+      "2rd7A"
+    ],
+    [
+      "2v1yA"
+    ],
+    [
+      "2v8sE"
+    ],
+    [
+      "2vohA"
+    ],
+    [
+      "2wd5B"
+    ],
+    [
+      "2y9wC"
+    ],
+    [
+      "2yajA"
+    ],
+    [
+      "2yajB"
+    ],
+    [
+      "2yc2D"
+    ],
+    [
+      "2yclA"
+    ],
+    [
+      "2yclB"
+    ],
+    [
+      "2z0eA"
+    ],
+    [
+      "2z0eB"
+    ],
+    [
+      "3anwB"
+    ],
+    [
+      "3aqbA"
+    ],
+    [
+      "3axjA"
+    ],
+    [
+      "3axjB"
+    ],
+    [
+      "3ayhA"
+    ],
+    [
+      "3ayhB"
+    ],
+    [
+      "3b08B",
+      "3vrdB"
+    ],
+    [
+      "3begA",
+      "4f6uA"
+    ],
+    [
+      "3begB"
+    ],
+    [
+      "3bp6A"
+    ],
+    [
+      "3bp6B"
+    ],
+    [
+      "3bs5A"
+    ],
+    [
+      "3c5tA"
+    ],
+    [
+      "3cbjB"
+    ],
+    [
+      "3cf4G"
+    ],
+    [
+      "3ckiA"
+    ],
+    [
+      "3ckiB"
+    ],
+    [
+      "3cqcB"
+    ],
+    [
+      "3cx8A"
+    ],
+    [
+      "3cx8B",
+      "4joiD"
+    ],
+    [
+      "3czuA"
+    ],
+    [
+      "3czuB"
+    ],
+    [
+      "3d48P"
+    ],
+    [
+      "3d48R"
+    ],
+    [
+      "3d4uB",
+      "3fjuB"
+    ],
+    [
+      "3d7vA"
+    ],
+    [
+      "3dgpA"
+    ],
+    [
+      "3di3B"
+    ],
+    [
+      "3dlqI"
+    ],
+    [
+      "3dlqR"
+    ],
+    [
+      "3f1sB"
+    ],
+    [
+      "3f6qB"
+    ],
+    [
+      "3fiiA"
+    ],
+    [
+      "3fmoB"
+    ],
+    [
+      "3fqdA"
+    ],
+    [
+      "3fqdB"
+    ],
+    [
+      "3gniA"
+    ],
+    [
+      "3gniB"
+    ],
+    [
+      "3h4sE"
+    ],
+    [
+      "3m7fA"
+    ],
+    [
+      "3m7fB"
+    ],
+    [
+      "3mdbC"
+    ],
+    [
+      "3mj7A"
+    ],
+    [
+      "3mj7B"
+    ],
+    [
+      "3mmyA"
+    ],
+    [
+      "3mp7A"
+    ],
+    [
+      "3nybA"
+    ],
+    [
+      "3nybB"
+    ],
+    [
+      "3og6B"
+    ],
+    [
+      "3onaA"
+    ],
+    [
+      "3onaB"
+    ],
+    [
+      "3ourA"
+    ],
+    [
+      "3p8bA"
+    ],
+    [
+      "3p8bB"
+    ],
+    [
+      "3ph0C",
+      "4kbmA"
+    ],
+    [
+      "3pv6A"
+    ],
+    [
+      "3pv6B"
+    ],
+    [
+      "3q87B",
+      "4emjA"
+    ],
+    [
+      "3q9nA"
+    ],
+    [
+      "3s97A"
+    ],
+    [
+      "3tgxA"
+    ],
+    [
+      "3tgxB"
+    ],
+    [
+      "3tu3B"
+    ],
+    [
+      "3uvjB"
+    ],
+    [
+      "3viqA"
+    ],
+    [
+      "3vpjA"
+    ],
+    [
+      "3vu9A"
+    ],
+    [
+      "3vu9B"
+    ],
+    [
+      "3vz9B"
+    ],
+    [
+      "3w0lA"
+    ],
+    [
+      "3w2wA"
+    ],
+    [
+      "3w2wB"
+    ],
+    [
+      "3zeuD"
+    ],
+    [
+      "3zeuE"
+    ],
+    [
+      "3zyiA"
+    ],
+    [
+      "3zyiB"
+    ],
+    [
+      "4apxA"
+    ],
+    [
+      "4apxB"
+    ],
+    [
+      "4awxA"
+    ],
+    [
+      "4bh6D"
+    ],
+    [
+      "4bi8A"
+    ],
+    [
+      "4bjjA"
+    ],
+    [
+      "4bjjB"
+    ],
+    [
+      "4cdgC"
+    ],
+    [
+      "4dfcB"
+    ],
+    [
+      "4e4wA"
+    ],
+    [
+      "4e4wB"
+    ],
+    [
+      "4eqaC"
+    ],
+    [
+      "4etpB"
+    ],
+    [
+      "4eukB"
+    ],
+    [
+      "4f6uB"
+    ],
+    [
+      "4fouC"
+    ],
+    [
+      "4fq0C",
+      "4h3kA"
+    ],
+    [
+      "4g6tB"
+    ],
+    [
+      "4g7xA"
+    ],
+    [
+      "4g7xB"
+    ],
+    [
+      "4gedA"
+    ],
+    [
+      "4gedB"
+    ],
+    [
+      "4gn4A"
+    ],
+    [
+      "4gn4B"
+    ],
+    [
+      "4hffA"
+    ],
+    [
+      "4hffB"
+    ],
+    [
+      "4hluD"
+    ],
+    [
+      "4hopA",
+      "4hopB"
+    ],
+    [
+      "4iu2A"
+    ],
+    [
+      "4je3A"
+    ],
+    [
+      "4kt3B"
+    ],
+    [
+      "4kt6A"
+    ],
+    [
+      "4m70B"
+    ],
+    [
+      "4nqwA"
+    ],
+    [
+      "5wy5A"
+    ],
+    [
+      "5wy5B"
+    ],
+    [
+      "7ceiA"
+    ]
+  ],
+  "train_ids": [
+    "1acbI",
+    "1ak4A",
+    "1ak4D",
+    "1ay7B",
+    "1b6cA",
+    "1c1yB",
+    "1dfjE",
+    "1dfjI",
+    "1e4kA",
+    "1e4kC",
+    "1e6eA",
+    "1e6eB",
+    "1eerA",
+    "1eerB",
+    "1efnA",
+    "1efnB",
+    "1euvA",
+    "1euvB",
+    "1ewyA",
+    "1f34A",
+    "1f34B",
+    "1f60A",
+    "1f60B",
+    "1fc2C",
+    "1gcqB",
+    "1gcqC",
+    "1ggpB",
+    "1ghqA",
+    "1ghqB",
+    "1gl4B",
+    "1glaF",
+    "1h32A",
+    "1hx1A",
+    "1hx1B",
+    "1ib1A",
+    "1ib1E",
+    "1itbA",
+    "1itbB",
+    "1jiwI",
+    "1jiwP",
+    "1jmoH",
+    "1jmoL",
+    "1jmtA",
+    "1jtdB",
+    "1k5dA",
+    "1k5dB",
+    "1k5dC",
+    "1k74A",
+    "1k74D",
+    "1ka9F",
+    "1kacA",
+    "1kklC",
+    "1kklH",
+    "1kshA",
+    "1kshB",
+    "1ktzA",
+    "1ktzB",
+    "1mahA",
+    "1mahF",
+    "1mg9A",
+    "1mg9B",
+    "1ml0A",
+    "1n2cA",
+    "1n2cB",
+    "1n2cE",
+    "1nrjA",
+    "1nrjB",
+    "1nw9A",
+    "1nw9B",
+    "1pq1A",
+    "1pxvA",
+    "1pxvC",
+    "1rlbA",
+    "1rlbE",
+    "1svdA",
+    "1svdM",
+    "1t6bX",
+    "1ta3B",
+    "1tdqA",
+    "1tdqB",
+    "1te1B",
+    "1tnrA",
+    "1tnrR",
+    "1u0sA",
+    "1u0sY",
+    "1udiE",
+    "1udiI",
+    "1v74B",
+    "1wkwA",
+    "1wpxB",
+    "1xg2A",
+    "1xg2B",
+    "1xqsA",
+    "1yvbI",
+    "1z0jB",
+    "1z3eA",
+    "1z3eB",
+    "1z5yD",
+    "1z5yE",
+    "1zbdB",
+    "1zbxA",
+    "1zbxB",
+    "2a9kB",
+    "2ajfA",
+    "2ajfE",
+    "2apoA",
+    "2b59A",
+    "2b59B",
+    "2c5kT",
+    "2c9xA",
+    "2c9xB",
+    "2cg5A",
+    "2cg5B",
+    "2d5rA",
+    "2d5rB",
+    "2d74B",
+    "2dohX",
+    "2dvwB",
+    "2ehbD",
+    "2fcwA",
+    "2fcwB",
+    "2fhzA",
+    "2fp4A",
+    "2fp4B",
+    "2g2uB",
+    "2g77A",
+    "2h0dA",
+    "2h0dB",
+    "2hqsA",
+    "2hqsH",
+    "2hrkA",
+    "2hrkB",
+    "2j3rB",
+    "2mtaA",
+    "2mtaH",
+    "2mtaL",
+    "2o2vA",
+    "2o2vB",
+    "2o3bA",
+    "2o3bB",
+    "2o8vA",
+    "2o8vB",
+    "2omzA",
+    "2omzB",
+    "2oznA",
+    "2oznB",
+    "2p7vA",
+    "2p7vB",
+    "2qc1A",
+    "2qc1B",
+    "2qklB",
+    "2qxvA",
+    "2r25A",
+    "2rd7A",
+    "2rd7C",
+    "2v1yA",
+    "2v1yB",
+    "2v6xA",
+    "2v8sE",
+    "2v8sV",
+    "2vohA",
+    "2wd5A",
+    "2wd5B",
+    "2wusA",
+    "2wusR",
+    "2xqrA",
+    "2y9wC",
+    "2yajA",
+    "2yajB",
+    "2yc2D",
+    "2yclA",
+    "2yclB",
+    "2z0eA",
+    "2z0eB",
+    "3anwA",
+    "3anwB",
+    "3aqbA",
+    "3aqbB",
+    "3axjA",
+    "3axjB",
+    "3ayhA",
+    "3ayhB",
+    "3b08A",
+    "3b08B",
+    "3begA",
+    "3begB",
+    "3bh7B",
+    "3bp6A",
+    "3bp6B",
+    "3bs5A",
+    "3bs5B",
+    "3c5tA",
+    "3cbjB",
+    "3cf4G",
+    "3ckiA",
+    "3ckiB",
+    "3cpjG",
+    "3cqcB",
+    "3cx8A",
+    "3cx8B",
+    "3czuA",
+    "3czuB",
+    "3d48P",
+    "3d48R",
+    "3d4uB",
+    "3d7vA",
+    "3dgpA",
+    "3dgpB",
+    "3di3A",
+    "3di3B",
+    "3dlqI",
+    "3dlqR",
+    "3f1sB",
+    "3f6qB",
+    "3fiiA",
+    "3fjuB",
+    "3fmoB",
+    "3fqdA",
+    "3fqdB",
+    "3gniA",
+    "3gniB",
+    "3h4sA",
+    "3h4sE",
+    "3m7fA",
+    "3m7fB",
+    "3mcbB",
+    "3mdbA",
+    "3mdbC",
+    "3mj7A",
+    "3mj7B",
+    "3mmyA",
+    "3mmyB",
+    "3mp7A",
+    "3mp7B",
+    "3nybA",
+    "3nybB",
+    "3o3mA",
+    "3og6A",
+    "3og6B",
+    "3onaA",
+    "3onaB",
+    "3ourA",
+    "3p8bA",
+    "3p8bB",
+    "3ph0A",
+    "3ph0C",
+    "3pv6A",
+    "3pv6B",
+    "3q87B",
+    "3q9nA",
+    "3r07A",
+    "3r07C",
+    "3s97A",
+    "3shgB",
+    "3tgxA",
+    "3tgxB",
+    "3tu3B",
+    "3uvjB",
+    "3viqA",
+    "3viqB",
+    "3vpjA",
+    "3vrdA",
+    "3vrdB",
+    "3vu9A",
+    "3vu9B",
+    "3vz9B",
+    "3w0lA",
+    "3w0lB",
+    "3w2wA",
+    "3w2wB",
+    "3zeuD",
+    "3zeuE",
+    "3zheA",
+    "3zkqA",
+    "3zr4B",
+    "3zyiA",
+    "3zyiB",
+    "4a5uA",
+    "4a5uB",
+    "4apxA",
+    "4apxB",
+    "4awxA",
+    "4awxB",
+    "4bh6D",
+    "4bh6L",
+    "4bi8A",
+    "4bi8B",
+    "4bjjA",
+    "4bjjB",
+    "4cdgC",
+    "4dfcA",
+    "4dfcB",
+    "4e4wA",
+    "4e4wB",
+    "4e6nA",
+    "4emjA",
+    "4eqaC",
+    "4etpA",
+    "4etpB",
+    "4eukA",
+    "4eukB",
+    "4f6uA",
+    "4f6uB",
+    "4fouA",
+    "4fouC",
+    "4fq0B",
+    "4fq0C",
+    "4g6tB",
+    "4g7xA",
+    "4g7xB",
+    "4gedA",
+    "4gedB",
+    "4gn4A",
+    "4gn4B",
+    "4h3kA",
+    "4hffA",
+    "4hffB",
+    "4hluD",
+    "4hopA",
+    "4hopB",
+    "4iu2A",
+    "4iu2B",
+    "4je3A",
+    "4joiD",
+    "4kbmA",
+    "4kt3B",
+    "4kt6A",
+    "4kt6B",
+    "4m69A",
+    "4m70B",
+    "4nqwA",
+    "5wy5A",
+    "5wy5B",
+    "7ceiA"
+  ],
+  "validation_ids": [],
+  "heldout_sequences_accessed": false,
+  "heldout_labels_accessed": false,
+  "labels_used_for_homology_or_assignment": false
+}
