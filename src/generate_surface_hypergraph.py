@@ -1,5 +1,5 @@
 """
-Generate Surface Patch Hyperedges and compute Hyperedge Enrichment.
+Generate surface patch hyperedges from structure and residue features.
 
 5 versions:
 A: Current k-hop + feature kNN (baseline)
@@ -12,13 +12,9 @@ Surface Patch definition:
     e_i = {j | RSA_i > 0.2, RSA_j > 0.2, d(i,j) < r}
     min_hyperedge_size = 3
     max_hyperedge_size = 20 or 30
-
-Hyperedge Enrichment:
-    Enrichment(e) = (#interface_residues_in_e / |e|) / (#interface_residues_in_protein / N)
 """
 
 import os
-import sys
 import pickle
 from pathlib import Path
 
@@ -285,45 +281,6 @@ def hyperedges_to_dhg(hyperedges, num_nodes):
     return hg
 
 
-def compute_hyperedge_enrichment(hyperedges, labels, interface_threshold=1):
-    """
-    Compute Hyperedge Enrichment.
-
-    Enrichment(e) = (#interface_residues_in_e / |e|) / (#interface_residues_in_protein / N)
-
-    Args:
-        hyperedges: list of lists
-        labels: (N,) binary labels (1 = interface, 0 = non-interface)
-        interface_threshold: not used, labels are already binary
-
-    Returns:
-        enrichments: list of enrichment values for each hyperedge
-        mean_enrichment: mean enrichment across all hyperedges
-    """
-    N = len(labels)
-    interface_rate_protein = np.sum(labels) / N
-
-    if interface_rate_protein == 0:
-        return [], 0.0
-
-    enrichments = []
-    for hyperedge in hyperedges:
-        if len(hyperedge) == 0:
-            continue
-
-        # Count interface residues in hyperedge
-        interface_in_edge = sum(1 for idx in hyperedge if labels[idx] == 1)
-        interface_rate_edge = interface_in_edge / len(hyperedge)
-
-        # Compute enrichment
-        enrichment = interface_rate_edge / interface_rate_protein
-        enrichments.append(enrichment)
-
-    mean_enrichment = np.mean(enrichments) if enrichments else 0.0
-
-    return enrichments, mean_enrichment
-
-
 def process_protein(protein_id, dataset, rsa_dir, pos_dir, graph_dir, feature_dir,
                     version='C', surface_radius=10.0, rsa_threshold=0.2):
     """
@@ -342,18 +299,15 @@ def process_protein(protein_id, dataset, rsa_dir, pos_dir, graph_dir, feature_di
 
     Returns:
         hypergraph: dhg.Hypergraph
-        enrichments: list of enrichment values
-        mean_enrichment: mean enrichment
     """
     # Load data
     item = dataset[protein_id]
     sequence = item[0]
-    labels = np.array(item[1])
 
     # Load RSA
     rsa_path = os.path.join(rsa_dir, f"{protein_id}.npy")
     if not os.path.exists(rsa_path):
-        return None, [], 0.0
+        return None
     rsa = np.load(rsa_path)
     if len(rsa.shape) > 1:
         rsa = rsa[:, 0]  # Use total RSA
@@ -363,12 +317,12 @@ def process_protein(protein_id, dataset, rsa_dir, pos_dir, graph_dir, feature_di
         # pos_dir is actually a path to an aggregated .pkl file
         psepos_dict = pickle.load(open(pos_dir, 'rb'))
         if protein_id not in psepos_dict:
-            return None, [], 0.0
+            return None
         pos = psepos_dict[protein_id]
     else:
         pos_path = os.path.join(pos_dir, f"{protein_id}.npy")
         if not os.path.exists(pos_path):
-            return None, [], 0.0
+            return None
         pos = np.load(pos_path)
     reference = pos[0]
     pos = pos - reference
@@ -376,7 +330,7 @@ def process_protein(protein_id, dataset, rsa_dir, pos_dir, graph_dir, feature_di
     # Load edge_index
     edge_path = os.path.join(graph_dir, f"{protein_id}.npy")
     if not os.path.exists(edge_path):
-        return None, [], 0.0
+        return None
     edge_index = np.load(edge_path)
     edge_list = edge_index.T.tolist()
 
@@ -419,27 +373,6 @@ def process_protein(protein_id, dataset, rsa_dir, pos_dir, graph_dir, feature_di
         hyperedges = generate_combined_hyperedges(
             node_features, edge_list, num_nodes, pos, rsa,
             surface_radius=10.0, rsa_threshold=rsa_threshold)
-    elif version == 'F':
-        # E-filtered: Start with E, then filter out noise
-        hyperedges = generate_combined_hyperedges(
-            node_features, edge_list, num_nodes, pos, rsa,
-            surface_radius=10.0, rsa_threshold=rsa_threshold)
-
-        # Filter 1: Remove size == 2 (just graph edges, not hyperedges)
-        # Filter 2: Remove oversized + low purity (size > 100, purity < 0.05)
-        interface_indices = set(np.where(labels == 1)[0])
-        filtered = []
-        for edge in hyperedges:
-            size = len(edge)
-            if size == 2:
-                continue
-            if size > 100:
-                edge_interface = sum(1 for n in edge if n in interface_indices)
-                purity = edge_interface / size if size > 0 else 0
-                if purity < 0.05:
-                    continue
-            filtered.append(edge)
-        hyperedges = filtered
     elif version == 'S1':
         # Conserved Surface Patch: surface + spatial + conservation
         hyperedges = generate_conserved_surface_patch_hyperedges(
@@ -451,13 +384,10 @@ def process_protein(protein_id, dataset, rsa_dir, pos_dir, graph_dir, feature_di
     else:
         raise ValueError(f"Unknown version: {version}")
 
-    # Compute enrichment
-    enrichments, mean_enrichment = compute_hyperedge_enrichment(hyperedges, labels)
-
     # Convert to dhg.Hypergraph
     hypergraph = hyperedges_to_dhg(hyperedges, num_nodes)
 
-    return hypergraph, enrichments, mean_enrichment
+    return hypergraph
 
 
 def main():
@@ -468,14 +398,14 @@ def main():
                         help="Output directory")
     parser.add_argument("--rsa_dir", type=str, default=str(SOURCE_DIR / "Feature/rsa"),
                         help="RSA directory")
-    parser.add_argument("--pos_dir", type=str, default=str(SOURCE_DIR / "Feature/psepos"),
+    parser.add_argument("--pos_dir", type=str, default=str(SOURCE_DIR / "Feature/psepos/Train335_psepos_SC.pkl"),
                         help="Position directory")
     parser.add_argument("--graph_dir", type=str, default=str(SOURCE_DIR / "Graph/SC/edge_index"),
                         help="Edge index directory")
     parser.add_argument("--feature_dir", type=str, default=str(SOURCE_DIR / "Feature"),
                         help="Feature directory")
     parser.add_argument("--version", type=str, default="C",
-                        choices=['A', 'B', 'C', 'D', 'E', 'F', 'S1', 'S2'],
+                        choices=['A', 'B', 'C', 'D', 'E', 'S1', 'S2'],
                         help="Hyperedge version")
     parser.add_argument("--surface_radius", type=float, default=10.0,
                         help="Surface patch radius")
@@ -499,7 +429,6 @@ def main():
         'C': 'surface_r10',
         'D': 'surface_r12',
         'E': 'current_plus_surface_r10',
-        'F': 'current_plus_surface_r10_filtered',
         'S1': 'conserved_surface_r10',
         'S2': 'hotspot_surface_r10',
     }
@@ -509,32 +438,15 @@ def main():
     # Process each protein
     print(f"Processing {len(dataset)} proteins with version {args.version}...")
 
-    all_enrichments = []
-    protein_enrichments = {}
-
     for protein_id in tqdm(dataset.keys()):
         output_path = os.path.join(output_dir, f"{protein_id}")
 
-        # Check if already processed
+        # Keep existing graphs.
         if os.path.exists(output_path):
-            # Load and compute enrichment
-            with open(output_path, 'rb') as f:
-                hypergraph = pickle.load(f)
-
-            # Recompute enrichment for analysis
-            item = dataset[protein_id]
-            labels = np.array(item[1])
-            hyperedges = []
-            for e_idx in range(hypergraph.num_e):
-                edge_nodes = list(hypergraph.e[0][e_idx])
-                hyperedges.append(edge_nodes)
-            enrichments, mean_enrichment = compute_hyperedge_enrichment(hyperedges, labels)
-            all_enrichments.extend(enrichments)
-            protein_enrichments[protein_id] = mean_enrichment
             continue
 
         try:
-            hypergraph, enrichments, mean_enrichment = process_protein(
+            hypergraph = process_protein(
                 protein_id, dataset, args.rsa_dir, args.pos_dir, args.graph_dir,
                 args.feature_dir, version=args.version,
                 surface_radius=args.surface_radius, rsa_threshold=args.rsa_threshold)
@@ -544,40 +456,10 @@ def main():
                 with open(output_path, 'wb') as f:
                     pickle.dump(hypergraph, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-                all_enrichments.extend(enrichments)
-                protein_enrichments[protein_id] = mean_enrichment
-
         except Exception as e:
             print(f"Error processing {protein_id}: {e}")
             continue
 
-    # Print summary
-    print("\n" + "="*80)
-    print(f"HYPEREDGE ENRICHMENT SUMMARY - Version {args.version} ({version_name[args.version]})")
-    print("="*80)
-
-    if all_enrichments:
-        print(f"\nTotal hyperedges: {len(all_enrichments)}")
-        print(f"Mean enrichment: {np.mean(all_enrichments):.4f}")
-        print(f"Std enrichment: {np.std(all_enrichments):.4f}")
-        print(f"Median enrichment: {np.median(all_enrichments):.4f}")
-        print(f"Enrichment > 1 (interface-enriched): {sum(1 for e in all_enrichments if e > 1)} ({sum(1 for e in all_enrichments if e > 1)/len(all_enrichments)*100:.1f}%)")
-
-        # Per-protein statistics
-        mean_per_protein = np.mean(list(protein_enrichments.values()))
-        print(f"\nMean enrichment per protein: {mean_per_protein:.4f}")
-
-    # Save enrichment data
-    enrichment_file = os.path.join(args.output_dir, f"enrichment_{version_name[args.version]}.pkl")
-    with open(enrichment_file, 'wb') as f:
-        pickle.dump({
-            'version': args.version,
-            'all_enrichments': all_enrichments,
-            'protein_enrichments': protein_enrichments
-        }, f)
-    print(f"\nEnrichment data saved to: {enrichment_file}")
-
 
 if __name__ == "__main__":
-    import torch
     main()
