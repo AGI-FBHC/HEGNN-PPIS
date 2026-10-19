@@ -23,9 +23,6 @@ The repository includes source code, Train335 and benchmark datasets, precompute
 </p>
 
 ## Test60 results
-
-The reported ensemble uses seeds `2181`, `2182`, and `2183`, continuation epoch `3`, and a validation-selected blend weight of `0.25`.
-
 | Metric | Value |
 |:--|--:|
 | ACC | 0.898433 |
@@ -36,7 +33,6 @@ The reported ensemble uses seeds `2181`, `2182`, and `2183`, continuation epoch 
 | AUROC | 0.925141 |
 | AUPRC | 0.740268 |
 
-Epoch and blend-weight selection used the fixed Train335 validation split. Test60 was evaluated once, and binary decisions use the frozen validation-selected prediction rule.
 
 ## Quick start
 
